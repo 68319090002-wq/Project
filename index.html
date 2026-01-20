@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ESP8266 Firebase Control</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+/* 🔧 Firebase Config (ใส่ของจริงจาก Console) */
+const firebaseConfig = {
+  apiKey: "AIzaSyC1a-XkNqLQ-fR9K9G3rRq4H3k9SKw9EF0",
+  authDomain: "project-7a563.firebaseapp.com",
+  databaseURL: "https://project-7a563-default-rtdb.firebaseio.com",
+  projectId: "project-7a563",
+  storageBucket: "project-7a563.firebasestorage.app",
+  messagingSenderId: "46320379136",
+  appId: "1:46320379136:web:f138f465bdde5939167fe5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* ===== Sensor ===== */
+const sensorRef = ref(db, "sensor");
+
+/* ===== Control ===== */
+const alarmControlRef = ref(db, "control/alarm");
+
+/* ===== READ SENSOR ===== */
+onValue(sensorRef, (snap) => {
+  const d = snap.val();
+  if (!d) return;
+
+  temp.innerText = d.temperature ?? "--";
+  distance.innerText = d.distance ?? "--";
+  soil.innerText = d.soil ?? "--";
+
+  if (d.alarm) {
+    alarmStatus.innerText = "🚨 ALARM";
+    alarmStatus.className = "alarm on";
+  } else {
+    alarmStatus.innerText = "✅ NORMAL";
+    alarmStatus.className = "alarm off";
+  }
+});
+
+/* ===== BUTTON CONTROL ===== */
+window.alarmOn = () => {
+  set(alarmControlRef, true);
+};
+
+window.alarmOff = () => {
+  set(alarmControlRef, false);
+};
+</script>
+
+<style>
+body {
+  background:#0f172a;
+  color:#e5e7eb;
+  font-family:Arial;
+  text-align:center;
+  padding:20px;
+}
+.card {
+  background:#1e293b;
+  padding:15px;
+  margin:10px auto;
+  max-width:320px;
+  border-radius:12px;
+}
+.value { font-size:2rem; }
+.alarm.on { background:#b91c1c; padding:10px; border-radius:10px; }
+.alarm.off { background:#15803d; padding:10px; border-radius:10px; }
+button {
+  width:120px;
+  padding:10px;
+  font-size:1rem;
+  border:none;
+  border-radius:10px;
+  margin:5px;
+  cursor:pointer;
+}
+.on { background:#dc2626; color:white; }
+.off { background:#16a34a; color:white; }
+</style>
+</head>
+
+<body>
+
+<h1>📡 ESP8266 Dashboard</h1>
+
+<div class="card">
+🌡 Temp: <span id="temp">--</span> °C
+</div>
+
+<div class="card">
+📏 Distance: <span id="distance">--</span> cm
+</div>
+
+<div class="card">
+🌱 Soil: <span id="soil">--</span> %
+</div>
+
+<div class="card">
+<div id="alarmStatus" class="alarm off">--</div>
+</div>
+
+<div class="card">
+<button class="on" onclick="alarmOn()">ALARM ON</button>
+<button class="off" onclick="alarmOff()">ALARM OFF</button>
+</div>
+
+</body>
+</html>
